@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PortfolioDisplay from "./components/PortfolioDisplay";
 import PortfolioForm from "./components/PortfolioForm";
 import type { Portfolio } from "./types/Portfolio";
@@ -21,32 +21,29 @@ function isLocalStorageReposValid(parsedRepos: unknown): parsedRepos is Repo[] {
 }
 
 function App() {
-  const [portfolio, setPortfolio] = useState<Portfolio>({
-    name: "Spider-man",
-    description: "Your friendly neighborhood Spider-man!",
-    githubUrl: "",
-    imgUrl: null,
-    repos: [],
-  });
+  const [portfolio, setPortfolio] = useState<Portfolio>(() => {
+    const fallback: Portfolio = {
+      name: "Spider-man",
+      description: "Your friendly neighborhood Spider-man!",
+      githubUrl: "",
+      imgUrl: null,
+      repos: [],
+    };
 
-  useEffect(() => {
-    const localStoragePortfolio = localStorage.getItem("portfolio");
-
-    if (!localStoragePortfolio) return;
+    const stored = localStorage.getItem("portfolio");
+    if (!stored) return fallback;
 
     try {
-      const parsed = JSON.parse(localStoragePortfolio) as unknown;
-
+      const parsed = JSON.parse(stored) as unknown;
       if (isLocalStorageReposValid(parsed)) {
-        setPortfolio((prev) => ({
-          ...prev,
-          repos: parsed,
-        }));
+        return { ...fallback, repos: parsed };
       }
-    } catch (err) {
-      console.warn("Failed to parse portfolio from localStorage", err);
+    } catch {
+      // ignore invalid storage
     }
-  }, []);
+
+    return fallback;
+  });
 
   return (
     <div className="flex px-4 sm:px-8 items-center min-h-screen justify-center">

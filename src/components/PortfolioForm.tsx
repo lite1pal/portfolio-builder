@@ -64,14 +64,12 @@ export default function PortfolioForm({
     try {
       setIsFetchingRepos(true);
       const repos = await fetchPublicRepos(username);
+      localStorage.setItem("portfolio", JSON.stringify(repos));
 
       setLocalPortfolio((prev) => ({
         ...prev,
         repos,
       }));
-
-      localStorage.setItem("portfolio", JSON.stringify(repos));
-
       setIsFetchingRepos(false);
     } catch (err: unknown) {
       if (err instanceof Error) {
