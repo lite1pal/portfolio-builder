@@ -1,7 +1,7 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Portfolio } from "../types/Portfolio";
 import { validateGithubUrl } from "../lib/urlValidators";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type PortfolioFormProps = {
   onChange: React.Dispatch<React.SetStateAction<Portfolio>>;
@@ -11,15 +11,20 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<Portfolio>();
+
+  const [localPortfolio, setLocalPortfolio] = useState<Portfolio>({
+    name: "",
+    description: "",
+    githubUrl: "",
+  });
 
   const onSubmit: SubmitHandler<Portfolio> = (data) => console.log(data);
 
   useEffect(() => {
-    onChange(watch());
-  }, [watch, onChange]);
+    onChange(localPortfolio);
+  }, [localPortfolio, onChange]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -30,6 +35,9 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
           type="text"
           className="input"
           placeholder=""
+          onChange={(e) =>
+            setLocalPortfolio((prev) => ({ ...prev, name: e.target.value }))
+          }
         />
         {errors.name && <span>This field is required</span>}
       </fieldset>
@@ -39,6 +47,12 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
           {...register("description", { required: true })}
           className="textarea"
           placeholder=""
+          onChange={(e) =>
+            setLocalPortfolio((prev) => ({
+              ...prev,
+              description: e.target.value,
+            }))
+          }
         ></textarea>
         {errors.description && <span>This field is required</span>}
       </fieldset>
@@ -57,6 +71,12 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
           type="text"
           className="input"
           placeholder=""
+          onChange={(e) =>
+            setLocalPortfolio((prev) => ({
+              ...prev,
+              githubUrl: e.target.value,
+            }))
+          }
         />
         {errors.githubUrl && <span>{errors.githubUrl.message}</span>}
       </fieldset>
