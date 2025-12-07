@@ -69,6 +69,9 @@ export default function PortfolioForm({
         ...prev,
         repos,
       }));
+
+      localStorage.setItem("portfolio", JSON.stringify(repos));
+
       setIsFetchingRepos(false);
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -3,7 +3,16 @@ import type { Repo } from "../types/Repo";
 export async function fetchPublicRepos(username: string): Promise<Repo[]> {
   const res = await fetch(`https://api.github.com/users/${username}/repos`);
   if (!res.ok) throw new Error(`Github API error: ${res.status}`);
-  return res.json();
+
+  const data = (await res.json()) as Repo[];
+
+  return data.map((repo: Repo) => ({
+    name: repo.name,
+    description: repo.description,
+    homepage: repo.homepage,
+    pushed_at: repo.pushed_at,
+    stargazers_count: repo.stargazers_count,
+  }));
 }
 
 export function extractGithubUsernameFromUrl(githubUrl: string): string | null {

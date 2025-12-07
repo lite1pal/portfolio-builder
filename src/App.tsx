@@ -1,7 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PortfolioDisplay from "./components/PortfolioDisplay";
 import PortfolioForm from "./components/PortfolioForm";
 import type { Portfolio } from "./types/Portfolio";
+import type { Repo } from "./types/Repo";
+
+function isLocalStorageReposValid(parsedRepos: unknown): parsedRepos is Repo[] {
+  return (
+    Array.isArray(parsedRepos) &&
+    parsedRepos.every(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        "name" in item &&
+        "description" in item &&
+        "homepage" in item &&
+        "pushed_at" in item &&
+        "stargazers_count" in item
+    )
+  );
+}
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio>({
@@ -11,6 +28,26 @@ function App() {
     imgUrl: null,
     repos: [],
   });
+
+  useEffect(() => {
+    const localStoragePortfolio = localStorage.getItem("portfolio");
+
+    if (!localStoragePortfolio) return;
+
+    try {
+      const parsed = JSON.parse(localStoragePortfolio) as unknown;
+
+      if (isLocalStorageReposValid(parsed)) {
+        setPortfolio((prev) => ({
+          ...prev,
+          repos: parsed,
+        }));
+      }
+    } catch (err) {
+      console.warn("Failed to parse portfolio from localStorage", err);
+    }
+  }, []);
+
   return (
     <div className="flex px-4 sm:px-8 items-center min-h-screen justify-center">
       <div className="grid sm:grid-cols-2 w-full items-center max-w-6xl gap-10">
