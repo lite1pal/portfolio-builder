@@ -1,67 +1,40 @@
 import { extractGithubUsernameFromUrl } from "../services/github";
 import type { Portfolio } from "../types/Portfolio";
+import { PortfolioImage } from "./PortfolioImage";
+import { RepoCard } from "./RepoCard";
 
 type PortfolioDisplayProps = {
   portfolio: Portfolio;
 };
 
-export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {
-  let imgSrc = null;
+function sortReposByPushedDate<T extends { pushed_at: Date }>(repos: T[]): T[] {
+  return [...repos].sort(
+    (a, b) => new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()
+  );
+}
 
-  if (portfolio.img instanceof File) {
-    imgSrc = URL.createObjectURL(portfolio.img);
-  } else if (typeof portfolio.img === "string") {
-    imgSrc = portfolio.img;
-  } else {
-    imgSrc =
-      "https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp";
-  }
+export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {
+  const username =
+    extractGithubUsernameFromUrl(portfolio.githubUrl)?.toLowerCase() ??
+    "portfolio-builder";
+  const sortedRepos = sortReposByPushedDate(portfolio.repos);
 
   return (
     <div className="mockup-browser border border-base-300 w-full">
       <div className="mockup-browser-toolbar">
-        <div className="input">
-          https://
-          {extractGithubUsernameFromUrl(portfolio.githubUrl)?.toLowerCase() ??
-            "portfolio-builder"}
-          .com
-        </div>
+        <div className="input">https://{username}.com</div>
       </div>
       <div className="grid place-content-center p-5 gap-3">
         <div className="flex items-center gap-3">
-          <img
-            src={imgSrc}
-            alt="Portfolio image"
-            className="size-16 rounded-full object-cover"
-          />
+          <PortfolioImage img={portfolio.img} name={portfolio.name} />
           <div className="text-xl font-semibold">{portfolio.name}</div>
         </div>
         <div className="font-semibold">{portfolio.description}</div>
 
         <div className="overflow-y-auto mt-5 h-96 flex flex-col gap-3">
-          {portfolio.repos
-            .sort(
-              (a, b) =>
-                new Date(b.pushed_at).getTime() -
-                new Date(a.pushed_at).getTime()
-            )
-            .map((repo) => (
-              <div
-                key={repo.name}
-                className="card w-full bg-base-100 card-md shadow-sm"
-              >
-                <div className="card-body">
-                  <h2 className="card-title">{repo.name}</h2>
-                  <p className="text-xs">{repo?.description}</p>
-
-                  {repo.homepage && (
-                    <a href={repo.homepage} className="link">
-                      {repo.homepage.replaceAll("https://", "")}
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
+          {sortedRepos.map((repo) => (
+            <RepoCard key={repo.name} repo={repo} />
+          ))}
         </div>
       </div>
     </div>

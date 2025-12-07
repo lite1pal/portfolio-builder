@@ -2,72 +2,30 @@ import { useState } from "react";
 import PortfolioDisplay from "./components/PortfolioDisplay";
 import PortfolioForm from "./components/PortfolioForm";
 import type { Portfolio } from "./types/Portfolio";
-import type { Repo } from "./types/Repo";
-import type { Profile } from "./types/Profile";
-
-function isLocalStorageReposValid(parsedRepos: unknown): parsedRepos is Repo[] {
-  return (
-    Array.isArray(parsedRepos) &&
-    parsedRepos.every(
-      (item) =>
-        item &&
-        typeof item === "object" &&
-        "name" in item &&
-        "description" in item &&
-        "homepage" in item &&
-        "pushed_at" in item &&
-        "stargazers_count" in item
-    )
-  );
-}
-
-function isLocalStorageProfileValid(
-  parsedProfile: unknown
-): parsedProfile is Profile {
-  return (
-    parsedProfile !== null &&
-    typeof parsedProfile === "object" &&
-    "name" in parsedProfile &&
-    "bio" in parsedProfile &&
-    "avatar_url" in parsedProfile
-  );
-}
+import { loadPortfolioFromStorage } from "./utils/localStorage";
+import { DEFAULT_PORTFOLIO } from "./constants/messages";
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio>(() => {
-    const fallback: Portfolio = {
-      name: "Spider-man",
-      description: "Your friendly neighborhood Spider-man!",
-      githubUrl: localStorage.getItem("githubUrl") ?? "",
+    const storedData = loadPortfolioFromStorage();
+
+    if (storedData) {
+      return {
+        name: storedData.name ?? DEFAULT_PORTFOLIO.NAME,
+        description: storedData.description ?? DEFAULT_PORTFOLIO.DESCRIPTION,
+        githubUrl: storedData.githubUrl ?? "",
+        img: storedData.img ?? null,
+        repos: storedData.repos ?? [],
+      };
+    }
+
+    return {
+      name: DEFAULT_PORTFOLIO.NAME,
+      description: DEFAULT_PORTFOLIO.DESCRIPTION,
+      githubUrl: "",
       img: null,
       repos: [],
     };
-
-    const storedRepos = localStorage.getItem("repos");
-    const storedProfile = localStorage.getItem("profile");
-
-    if (!storedRepos || !storedProfile) return fallback;
-
-    try {
-      const parsedRepos = JSON.parse(storedRepos) as unknown;
-      const parsedProfile = JSON.parse(storedProfile) as unknown;
-      if (
-        isLocalStorageReposValid(parsedRepos) &&
-        isLocalStorageProfileValid(parsedProfile)
-      ) {
-        return {
-          ...fallback,
-          repos: parsedRepos,
-          name: parsedProfile.name,
-          description: parsedProfile.bio,
-          img: parsedProfile.avatar_url,
-        };
-      }
-    } catch {
-      // ignore invalid storage
-    }
-
-    return fallback;
   });
 
   return (

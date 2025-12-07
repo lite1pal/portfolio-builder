@@ -1,14 +1,10 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Portfolio } from "../types/Portfolio";
-import { useEffect, useState } from "react";
-import {
-  extractGithubUsernameFromUrl,
-  fetchPublicRepos,
-  fetchGithubProfile,
-  validateGithubUrl,
-} from "../services/github";
+import { useEffect } from "react";
+import { validateGithubUrl } from "../services/github";
 import { Loader, UserSearch } from "lucide-react";
-import toast from "react-hot-toast";
+import { useGithubData } from "../hooks/useGithubData";
+import { ERROR_MESSAGES } from "../constants/messages";
 
 type PortfolioFormProps = {
   initialPortfolio: Portfolio;
@@ -24,87 +20,30 @@ export default function PortfolioForm({
     handleSubmit,
     getValues,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<Portfolio>({
-    defaultValues: {
-      name: initialPortfolio.name,
-      description: initialPortfolio.description,
-      githubUrl: initialPortfolio.githubUrl,
-      img: initialPortfolio.img,
-      repos: initialPortfolio.repos,
-    },
+    defaultValues: initialPortfolio,
   });
 
-  const [isFetchingRepos, setIsFetchingRepos] = useState(false);
-  const [localPortfolio, setLocalPortfolio] = useState<Portfolio>({
-    name: initialPortfolio.name,
-    description: initialPortfolio.description,
-    githubUrl: initialPortfolio.githubUrl,
-    img: initialPortfolio.img,
-    repos: initialPortfolio.repos,
-  });
+  const { isFetchingRepos, fetchGithubRepos } = useGithubData();
+
+  const formValues = watch();
 
   const onSubmit: SubmitHandler<Portfolio> = async (data) => console.log(data);
 
-  const fetchGithubRepos = async (githubUrl: string | null) => {
-    if (localStorage.getItem("githubUrl") === githubUrl) {
-      toast.error("You already fetched repos from here");
-      return;
-    }
-
-    if (!githubUrl) {
-      toast.error("Github URL isn't provided");
-      return;
-    }
-
-    const username = extractGithubUsernameFromUrl(githubUrl);
-
-    if (!username) {
-      toast.error("Github username isn't available in the provided URL");
-      return;
-    }
-
-    setIsFetchingRepos(true);
-    try {
-      toast.success("Fetching your repos...");
-      const [repos, profile] = await Promise.all([
-        fetchPublicRepos(username),
-        fetchGithubProfile(username),
-      ]);
-
-      if (repos.length > 0) {
-        localStorage.setItem("repos", JSON.stringify(repos));
-        localStorage.setItem("githubUrl", githubUrl);
-        localStorage.setItem("profile", JSON.stringify(profile));
-
-        setLocalPortfolio((prev) => ({
-          ...prev,
-          img: profile.avatar_url,
-          description: profile.bio,
-          name: profile.name,
-          repos,
-        }));
-
-        setValue("name", profile.name);
-        setValue("description", profile.bio);
-      } else {
-        toast.error("Your Github profile doesn't have any public repos :(");
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-        toast.error(err.message);
-      } else {
-        console.error("Unknown error", err);
-      }
-    } finally {
-      setIsFetchingRepos(false);
-    }
+  const handleFetchGithubRepos = async () => {
+    await fetchGithubRepos(getValues("githubUrl"), (repos, profile) => {
+      setValue("name", profile.name);
+      setValue("description", profile.bio);
+      setValue("img", profile.avatar_url);
+      setValue("repos", repos);
+    });
   };
 
   useEffect(() => {
-    onChange(localPortfolio);
-  }, [localPortfolio, onChange]);
+    onChange(formValues);
+  }, [formValues, onChange]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
@@ -114,25 +53,15 @@ export default function PortfolioForm({
           <input
             {...register("githubUrl", {
               required: true,
-
-              validate: (value) => {
-                return validateGithubUrl(value)
-                  ? true
-                  : "Specify the correct Github profile URL";
-              },
+              validate: (value) =>
+                validateGithubUrl(value) || ERROR_MESSAGES.INVALID_GITHUB_URL,
             })}
             type="text"
             className="input"
             placeholder="https://github.com/your-username"
-            onChange={(e) =>
-              setLocalPortfolio((prev) => ({
-                ...prev,
-                githubUrl: e.target.value,
-              }))
-            }
           />
           <button
-            onClick={() => fetchGithubRepos(getValues("githubUrl"))}
+            onClick={handleFetchGithubRepos}
             type="button"
             className="btn btn-ghost"
             disabled={isFetchingRepos}
@@ -151,11 +80,7 @@ export default function PortfolioForm({
           className="file-input"
           onChange={(e) => {
             const file = e.target.files?.[0] ?? null;
-
-            setLocalPortfolio((prev) => ({
-              ...prev,
-              img: file,
-            }));
+            setValue("img", file);
           }}
         />
       </fieldset>
@@ -167,11 +92,8 @@ export default function PortfolioForm({
           type="text"
           className="input"
           placeholder=""
-          onChange={(e) =>
-            setLocalPortfolio((prev) => ({ ...prev, name: e.target.value }))
-          }
         />
-        {errors.name && <span>This field is required</span>}
+        {errors.name && <span>{ERROR_MESSAGES.REQUIRED_FIELD}</span>}
       </fieldset>
       <fieldset className="fieldset">
         <legend className="fieldset-legend">Description</legend>
@@ -179,14 +101,8 @@ export default function PortfolioForm({
           {...register("description", { required: true })}
           className="textarea"
           placeholder=""
-          onChange={(e) =>
-            setLocalPortfolio((prev) => ({
-              ...prev,
-              description: e.target.value,
-            }))
-          }
         ></textarea>
-        {errors.description && <span>This field is required</span>}
+        {errors.description && <span>{ERROR_MESSAGES.REQUIRED_FIELD}</span>}
       </fieldset>
 
       <div className="flex mt-5 flex-col gap-3 sm:flex-row">

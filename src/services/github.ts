@@ -1,9 +1,24 @@
 import type { Profile } from "../types/Profile";
 import type { Repo } from "../types/Repo";
 
+const GITHUB_API_BASE_URL = "https://api.github.com";
+
+class GithubApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = "GithubApiError";
+  }
+}
+
 export async function fetchPublicRepos(username: string): Promise<Repo[]> {
-  const res = await fetch(`https://api.github.com/users/${username}/repos`);
-  if (!res.ok) throw new Error(`Github API error: ${res.status}`);
+  const res = await fetch(`${GITHUB_API_BASE_URL}/users/${username}/repos`);
+
+  if (!res.ok) {
+    throw new GithubApiError(res.status, `Github API error: ${res.status}`);
+  }
 
   const data = (await res.json()) as Repo[];
 
@@ -17,8 +32,11 @@ export async function fetchPublicRepos(username: string): Promise<Repo[]> {
 }
 
 export async function fetchGithubProfile(username: string): Promise<Profile> {
-  const res = await fetch(`https://api.github.com/users/${username}`);
-  if (!res.ok) throw new Error(`Github API error: ${res.status}`);
+  const res = await fetch(`${GITHUB_API_BASE_URL}/users/${username}`);
+
+  if (!res.ok) {
+    throw new GithubApiError(res.status, `Github API error: ${res.status}`);
+  }
 
   const data = (await res.json()) as Profile;
 
