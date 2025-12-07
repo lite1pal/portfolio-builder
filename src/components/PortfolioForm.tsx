@@ -92,7 +92,7 @@ export default function PortfolioForm({
           {...register("imgUrl", { required: true })}
           type="file"
           accept="image/png,image/jpeg,image/webp"
-          className="file-input file-input-primary"
+          className="file-input file-input-secondary"
           onChange={(e) => {
             const file = e.target.files?.[0] ?? null;
 
@@ -147,7 +147,7 @@ export default function PortfolioForm({
             })}
             type="text"
             className="input"
-            placeholder=""
+            placeholder="https://github.com/your-username"
             onChange={(e) =>
               setLocalPortfolio((prev) => ({
                 ...prev,
