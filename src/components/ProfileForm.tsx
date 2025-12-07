@@ -1,18 +1,49 @@
+import { useForm, type SubmitHandler } from "react-hook-form";
+import type { ProfileFormType } from "../types/ProfileFormType";
+
 export default function ProfileForm() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ProfileFormType>();
+
+  const onSubmit: SubmitHandler<ProfileFormType> = (data) => console.log(data);
+
+  console.log(watch("name"));
+
   return (
     <div className="grid sm:grid-cols-2 w-full">
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Your name</legend>
-          <input type="text" className="input" placeholder="" />
+          <input
+            {...register("name", { required: true })}
+            type="text"
+            className="input"
+            placeholder=""
+          />
+          {errors.name && <span>This field is required</span>}
         </fieldset>
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Description</legend>
-          <textarea className="textarea" placeholder=""></textarea>
+          <textarea
+            {...register("description", { required: true })}
+            className="textarea"
+            placeholder=""
+          ></textarea>
+          {errors.description && <span>This field is required</span>}
         </fieldset>
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Github Profile URL</legend>
-          <input type="text" className="input" placeholder="" />
+          <input
+            {...register("githubUrl", { required: true })}
+            type="text"
+            className="input"
+            placeholder=""
+          />
+          {errors.githubUrl && <span>This field is required</span>}
         </fieldset>
 
         <button className="mt-5 btn btn-primary">
