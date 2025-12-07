@@ -17,11 +17,9 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
 
   const onSubmit: SubmitHandler<Portfolio> = (data) => console.log(data);
 
-  const values = watch();
-
   useEffect(() => {
-    onChange(values);
-  }, [values, onChange]);
+    onChange(watch());
+  }, [watch, onChange]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
