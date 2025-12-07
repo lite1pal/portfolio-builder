@@ -25,12 +25,12 @@ function App() {
     const fallback: Portfolio = {
       name: "Spider-man",
       description: "Your friendly neighborhood Spider-man!",
-      githubUrl: "",
+      githubUrl: localStorage.getItem("githubUrl") ?? "",
       imgUrl: null,
       repos: [],
     };
 
-    const stored = localStorage.getItem("portfolio");
+    const stored = localStorage.getItem("repos");
     if (!stored) return fallback;
 
     try {
@@ -47,7 +47,7 @@ function App() {
 
   return (
     <div className="flex px-4 sm:px-8 items-center min-h-screen justify-center">
-      <div className="grid sm:grid-cols-2 w-full items-center max-w-6xl gap-10">
+      <div className="grid sm:grid-cols-2 w-full items-center max-w-7xl gap-10">
         <div>
           <h1 className="text-6xl leading-[1.3] font-semibold mb-10">
             Create beautiful portfolio{" "}
