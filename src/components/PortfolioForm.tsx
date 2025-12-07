@@ -18,6 +18,7 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
     name: "",
     description: "",
     githubUrl: "",
+    imgUrl: null,
   });
 
   const onSubmit: SubmitHandler<Portfolio> = (data) => console.log(data);
@@ -28,6 +29,24 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Your picture</legend>
+        <input
+          {...register("imgUrl", { required: true })}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="file-input file-input-primary"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+
+            setLocalPortfolio((prev) => ({
+              ...prev,
+              imgUrl: file,
+            }));
+          }}
+        />
+      </fieldset>
+
       <fieldset className="fieldset">
         <legend className="fieldset-legend">Your name</legend>
         <input

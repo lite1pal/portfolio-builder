@@ -8,6 +8,7 @@ function App() {
     name: "",
     description: "",
     githubUrl: "",
+    imgUrl: null,
   });
   return (
     <div className="flex px-4 sm:px-8 items-center min-h-screen justify-center">
