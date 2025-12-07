@@ -1,26 +1,84 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Portfolio } from "../types/Portfolio";
-import { validateGithubUrl } from "../lib/urlValidators";
 import { useEffect, useState } from "react";
+import {
+  extractGithubUsernameFromUrl,
+  fetchPublicRepos,
+  validateGithubUrl,
+} from "../services/github";
+import { Loader, UserSearch } from "lucide-react";
+import toast from "react-hot-toast";
 
 type PortfolioFormProps = {
+  initialPortfolio: Portfolio;
   onChange: React.Dispatch<React.SetStateAction<Portfolio>>;
 };
 
-export default function PortfolioForm({ onChange }: PortfolioFormProps) {
+export default function PortfolioForm({
+  initialPortfolio,
+  onChange,
+}: PortfolioFormProps) {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
-  } = useForm<Portfolio>();
-
-  const [localPortfolio, setLocalPortfolio] = useState<Portfolio>({
-    name: "",
-    description: "",
-    githubUrl: "",
+  } = useForm<Portfolio>({
+    defaultValues: {
+      name: initialPortfolio.name,
+      description: initialPortfolio.description,
+      githubUrl: initialPortfolio.githubUrl,
+      imgUrl: initialPortfolio.imgUrl,
+      repos: initialPortfolio.repos,
+    },
   });
 
-  const onSubmit: SubmitHandler<Portfolio> = (data) => console.log(data);
+  const [isFetchingRepos, setIsFetchingRepos] = useState(false);
+  const [localPortfolio, setLocalPortfolio] = useState<Portfolio>({
+    name: initialPortfolio.name,
+    description: initialPortfolio.description,
+    githubUrl: initialPortfolio.githubUrl,
+    imgUrl: initialPortfolio.imgUrl,
+    repos: initialPortfolio.repos,
+  });
+
+  const isReposFetched = localPortfolio.repos.length > 0;
+
+  const onSubmit: SubmitHandler<Portfolio> = async (data) => console.log(data);
+
+  const fetchGithubRepos = async (githubUrl: string | null) => {
+    if (isReposFetched) return;
+
+    if (!githubUrl) {
+      toast.error("Github URL isn't provided");
+      return;
+    }
+
+    const username = extractGithubUsernameFromUrl(githubUrl);
+
+    if (!username) {
+      toast.error("Github username isn't available in the provided URL");
+      return;
+    }
+
+    try {
+      setIsFetchingRepos(true);
+      const repos = await fetchPublicRepos(username);
+
+      setLocalPortfolio((prev) => ({
+        ...prev,
+        repos,
+      }));
+      setIsFetchingRepos(false);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+        toast.error(err.message);
+      } else {
+        console.error("Unknown error", err);
+      }
+    }
+  };
 
   useEffect(() => {
     onChange(localPortfolio);
@@ -28,6 +86,24 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Your picture</legend>
+        <input
+          {...register("imgUrl", { required: true })}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="file-input file-input-primary"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+
+            setLocalPortfolio((prev) => ({
+              ...prev,
+              imgUrl: file,
+            }));
+          }}
+        />
+      </fieldset>
+
       <fieldset className="fieldset">
         <legend className="fieldset-legend">Your name</legend>
         <input
@@ -58,30 +134,52 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
       </fieldset>
       <fieldset className="fieldset">
         <legend className="fieldset-legend">Github Profile URL</legend>
-        <input
-          {...register("githubUrl", {
-            required: true,
+        <div className="flex gap-3 items-center">
+          <input
+            {...register("githubUrl", {
+              required: true,
 
-            validate: (value) => {
-              return validateGithubUrl(value)
-                ? true
-                : "Specify the correct Github profile URL";
-            },
-          })}
-          type="text"
-          className="input"
-          placeholder=""
-          onChange={(e) =>
-            setLocalPortfolio((prev) => ({
-              ...prev,
-              githubUrl: e.target.value,
-            }))
-          }
-        />
+              validate: (value) => {
+                return validateGithubUrl(value)
+                  ? true
+                  : "Specify the correct Github profile URL";
+              },
+            })}
+            type="text"
+            className="input"
+            placeholder=""
+            onChange={(e) =>
+              setLocalPortfolio((prev) => ({
+                ...prev,
+                githubUrl: e.target.value,
+              }))
+            }
+          />
+          {!isReposFetched && (
+            <button
+              onClick={() => fetchGithubRepos(getValues("githubUrl"))}
+              type="button"
+              className="btn btn-ghost"
+              disabled={isFetchingRepos}
+            >
+              {isFetchingRepos ? (
+                <Loader size={16} />
+              ) : (
+                <UserSearch size={16} />
+              )}
+            </button>
+          )}
+        </div>
         {errors.githubUrl && <span>{errors.githubUrl.message}</span>}
       </fieldset>
 
-      <button className="mt-5 btn btn-primary">Create a portfolio page</button>
+      <div className="flex mt-5 flex-col gap-3 sm:flex-row">
+        <button className="btn btn-primary">Publish a portfolio page</button>
+
+        <button name="download-html" className="btn btn-ghost">
+          Download HTML & CSS
+        </button>
+      </div>
     </form>
   );
 }

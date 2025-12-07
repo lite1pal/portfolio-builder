@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { validateGithubUrl } from "./urlValidators";
+import { extractGithubUsernameFromUrl, validateGithubUrl } from "./github";
 
 describe("validate github url", () => {
   it("accepts valid Github profile URLs", () => {
@@ -16,5 +16,23 @@ describe("validate github url", () => {
       false
     );
     expect(validateGithubUrl("github.com/user")).toBe(false);
+  });
+});
+
+describe("extract github username from url", () => {
+  it("returns a valid github username", () => {
+    expect(extractGithubUsernameFromUrl("https://github.com/lite1pal")).toBe(
+      "lite1pal"
+    );
+    expect(extractGithubUsernameFromUrl("https://github.com/leerob")).toBe(
+      "leerob"
+    );
+  });
+
+  it("returns null for malformed URLs", () => {
+    expect(extractGithubUsernameFromUrl("github.com/lite1pal")).toBe(null);
+    expect(extractGithubUsernameFromUrl("")).toBe(null);
+    expect(extractGithubUsernameFromUrl(".  ")).toBe(null);
+    expect(extractGithubUsernameFromUrl("   ")).toBe(null);
   });
 });

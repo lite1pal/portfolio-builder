@@ -5,9 +5,11 @@ import type { Portfolio } from "./types/Portfolio";
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio>({
-    name: "",
-    description: "",
+    name: "Spider-man",
+    description: "Your friendly neighborhood Spider-man!",
     githubUrl: "",
+    imgUrl: null,
+    repos: [],
   });
   return (
     <div className="flex px-4 sm:px-8 items-center min-h-screen justify-center">
@@ -20,7 +22,7 @@ function App() {
               in minutes
             </span>
           </h1>
-          <PortfolioForm onChange={setPortfolio} />
+          <PortfolioForm initialPortfolio={portfolio} onChange={setPortfolio} />
         </div>
         <PortfolioDisplay portfolio={portfolio} />
       </div>
