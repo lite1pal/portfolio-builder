@@ -4,6 +4,6 @@ export type Portfolio = {
   name: string;
   description: string;
   githubUrl: string;
-  imgUrl: File | null;
+  img: string | File | null;
   repos: Repo[];
 };

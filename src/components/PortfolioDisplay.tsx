@@ -6,16 +6,23 @@ type PortfolioDisplayProps = {
 };
 
 export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {
-  const imgSrc = portfolio.imgUrl
-    ? URL.createObjectURL(portfolio.imgUrl)
-    : "https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp";
+  let imgSrc = null;
+
+  if (portfolio.img instanceof File) {
+    imgSrc = URL.createObjectURL(portfolio.img);
+  } else if (typeof portfolio.img === "string") {
+    imgSrc = portfolio.img;
+  } else {
+    imgSrc =
+      "https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp";
+  }
 
   return (
     <div className="mockup-browser border border-base-300 w-full">
       <div className="mockup-browser-toolbar">
         <div className="input">
           https://
-          {extractGithubUsernameFromUrl(portfolio.githubUrl) ??
+          {extractGithubUsernameFromUrl(portfolio.githubUrl)?.toLowerCase() ??
             "portfolio-builder"}
           .com
         </div>

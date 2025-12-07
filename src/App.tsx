@@ -3,6 +3,7 @@ import PortfolioDisplay from "./components/PortfolioDisplay";
 import PortfolioForm from "./components/PortfolioForm";
 import type { Portfolio } from "./types/Portfolio";
 import type { Repo } from "./types/Repo";
+import type { Profile } from "./types/Profile";
 
 function isLocalStorageReposValid(parsedRepos: unknown): parsedRepos is Repo[] {
   return (
@@ -20,23 +21,47 @@ function isLocalStorageReposValid(parsedRepos: unknown): parsedRepos is Repo[] {
   );
 }
 
+function isLocalStorageProfileValid(
+  parsedProfile: unknown
+): parsedProfile is Profile {
+  return (
+    parsedProfile !== null &&
+    typeof parsedProfile === "object" &&
+    "name" in parsedProfile &&
+    "bio" in parsedProfile &&
+    "avatar_url" in parsedProfile
+  );
+}
+
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio>(() => {
     const fallback: Portfolio = {
       name: "Spider-man",
       description: "Your friendly neighborhood Spider-man!",
       githubUrl: localStorage.getItem("githubUrl") ?? "",
-      imgUrl: null,
+      img: null,
       repos: [],
     };
 
-    const stored = localStorage.getItem("repos");
-    if (!stored) return fallback;
+    const storedRepos = localStorage.getItem("repos");
+    const storedProfile = localStorage.getItem("profile");
+
+    if (!storedRepos || !storedProfile) return fallback;
 
     try {
-      const parsed = JSON.parse(stored) as unknown;
-      if (isLocalStorageReposValid(parsed)) {
-        return { ...fallback, repos: parsed };
+      const parsedRepos = JSON.parse(storedRepos) as unknown;
+      const parsedProfile = JSON.parse(storedProfile) as unknown;
+      if (
+        isLocalStorageReposValid(parsedRepos) &&
+        isLocalStorageProfileValid(parsedProfile)
+      ) {
+        return {
+          ...fallback,
+          repos: parsedRepos,
+          name: parsedProfile.name,
+          description: parsedProfile.bio,
+          img: parsedProfile.avatar_url,
+        };
       }
     } catch {
       // ignore invalid storage

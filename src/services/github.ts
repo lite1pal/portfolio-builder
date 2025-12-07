@@ -1,3 +1,4 @@
+import type { Profile } from "../types/Profile";
 import type { Repo } from "../types/Repo";
 
 export async function fetchPublicRepos(username: string): Promise<Repo[]> {
@@ -13,6 +14,19 @@ export async function fetchPublicRepos(username: string): Promise<Repo[]> {
     pushed_at: repo.pushed_at,
     stargazers_count: repo.stargazers_count,
   }));
+}
+
+export async function fetchGithubProfile(username: string): Promise<Profile> {
+  const res = await fetch(`https://api.github.com/users/${username}`);
+  if (!res.ok) throw new Error(`Github API error: ${res.status}`);
+
+  const data = (await res.json()) as Profile;
+
+  return {
+    name: data.name,
+    bio: data.bio,
+    avatar_url: data.avatar_url,
+  } as Profile;
 }
 
 export function extractGithubUsernameFromUrl(githubUrl: string): string | null {

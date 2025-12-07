@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   extractGithubUsernameFromUrl,
   fetchPublicRepos,
+  fetchGithubProfile,
   validateGithubUrl,
 } from "../services/github";
 import { Loader, UserSearch } from "lucide-react";
@@ -28,7 +29,7 @@ export default function PortfolioForm({
       name: initialPortfolio.name,
       description: initialPortfolio.description,
       githubUrl: initialPortfolio.githubUrl,
-      imgUrl: initialPortfolio.imgUrl,
+      img: initialPortfolio.img,
       repos: initialPortfolio.repos,
     },
   });
@@ -38,16 +39,17 @@ export default function PortfolioForm({
     name: initialPortfolio.name,
     description: initialPortfolio.description,
     githubUrl: initialPortfolio.githubUrl,
-    imgUrl: initialPortfolio.imgUrl,
+    img: initialPortfolio.img,
     repos: initialPortfolio.repos,
   });
-
-  const isReposFetched = localPortfolio.repos.length > 0;
 
   const onSubmit: SubmitHandler<Portfolio> = async (data) => console.log(data);
 
   const fetchGithubRepos = async (githubUrl: string | null) => {
-    if (isReposFetched) return;
+    if (localStorage.getItem("githubUrl") === githubUrl) {
+      toast.error("You already fetched repos from here");
+      return;
+    }
 
     if (!githubUrl) {
       toast.error("Github URL isn't provided");
@@ -61,17 +63,29 @@ export default function PortfolioForm({
       return;
     }
 
+    setIsFetchingRepos(true);
     try {
-      setIsFetchingRepos(true);
-      const repos = await fetchPublicRepos(username);
-      localStorage.setItem("repos", JSON.stringify(repos));
-      localStorage.setItem("githubUrl", githubUrl);
+      toast.success("Fetching your repos...");
+      const [repos, profile] = await Promise.all([
+        fetchPublicRepos(username),
+        fetchGithubProfile(username),
+      ]);
 
-      setLocalPortfolio((prev) => ({
-        ...prev,
-        repos,
-      }));
-      setIsFetchingRepos(false);
+      if (repos.length > 0) {
+        localStorage.setItem("repos", JSON.stringify(repos));
+        localStorage.setItem("githubUrl", githubUrl);
+        localStorage.setItem("profile", JSON.stringify(profile));
+
+        setLocalPortfolio((prev) => ({
+          ...prev,
+          img: profile.avatar_url,
+          description: profile.bio,
+          name: profile.name,
+          repos,
+        }));
+      } else {
+        toast.error("Your Github profile doesn't have any public repos :(");
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -79,6 +93,8 @@ export default function PortfolioForm({
       } else {
         console.error("Unknown error", err);
       }
+    } finally {
+      setIsFetchingRepos(false);
     }
   };
 
@@ -87,53 +103,7 @@ export default function PortfolioForm({
   }, [localPortfolio, onChange]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <fieldset className="fieldset">
-        <legend className="fieldset-legend">Your picture</legend>
-        <input
-          {...register("imgUrl", { required: true })}
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="file-input"
-          onChange={(e) => {
-            const file = e.target.files?.[0] ?? null;
-
-            setLocalPortfolio((prev) => ({
-              ...prev,
-              imgUrl: file,
-            }));
-          }}
-        />
-      </fieldset>
-
-      <fieldset className="fieldset">
-        <legend className="fieldset-legend">Your name</legend>
-        <input
-          {...register("name", { required: true })}
-          type="text"
-          className="input"
-          placeholder=""
-          onChange={(e) =>
-            setLocalPortfolio((prev) => ({ ...prev, name: e.target.value }))
-          }
-        />
-        {errors.name && <span>This field is required</span>}
-      </fieldset>
-      <fieldset className="fieldset">
-        <legend className="fieldset-legend">Description</legend>
-        <textarea
-          {...register("description", { required: true })}
-          className="textarea"
-          placeholder=""
-          onChange={(e) =>
-            setLocalPortfolio((prev) => ({
-              ...prev,
-              description: e.target.value,
-            }))
-          }
-        ></textarea>
-        {errors.description && <span>This field is required</span>}
-      </fieldset>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
       <fieldset className="fieldset">
         <legend className="fieldset-legend">Github Profile URL</legend>
         <div className="flex gap-3 items-center">
@@ -167,6 +137,52 @@ export default function PortfolioForm({
           </button>
         </div>
         {errors.githubUrl && <span>{errors.githubUrl.message}</span>}
+      </fieldset>
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Your picture</legend>
+        <input
+          {...register("img", { required: true })}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="file-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+
+            setLocalPortfolio((prev) => ({
+              ...prev,
+              img: file,
+            }));
+          }}
+        />
+      </fieldset>
+
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Your name</legend>
+        <input
+          {...register("name", { required: true })}
+          type="text"
+          className="input"
+          placeholder=""
+          onChange={(e) =>
+            setLocalPortfolio((prev) => ({ ...prev, name: e.target.value }))
+          }
+        />
+        {errors.name && <span>This field is required</span>}
+      </fieldset>
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Description</legend>
+        <textarea
+          {...register("description", { required: true })}
+          className="textarea"
+          placeholder=""
+          onChange={(e) =>
+            setLocalPortfolio((prev) => ({
+              ...prev,
+              description: e.target.value,
+            }))
+          }
+        ></textarea>
+        {errors.description && <span>This field is required</span>}
       </fieldset>
 
       <div className="flex mt-5 flex-col gap-3 sm:flex-row">
