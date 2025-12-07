@@ -1,7 +1,7 @@
-import type { Profile } from "../types/Profile";
+import type { Portfolio } from "../types/Portfolio";
 
 type PortfolioDisplayProps = {
-  portfolio: Profile;
+  portfolio: Portfolio;
 };
 
 export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {

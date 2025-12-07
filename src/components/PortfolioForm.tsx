@@ -1,21 +1,21 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
-import type { Profile } from "../types/Profile";
+import type { Portfolio } from "../types/Portfolio";
 import { validateGithubUrl } from "../lib/urlValidators";
 import { useEffect } from "react";
 
-type ProfileFormProps = {
-  onChange: React.Dispatch<React.SetStateAction<Profile>>;
+type PortfolioFormProps = {
+  onChange: React.Dispatch<React.SetStateAction<Portfolio>>;
 };
 
-export default function ProfileForm({ onChange }: ProfileFormProps) {
+export default function PortfolioForm({ onChange }: PortfolioFormProps) {
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<Profile>();
+  } = useForm<Portfolio>();
 
-  const onSubmit: SubmitHandler<Profile> = (data) => console.log(data);
+  const onSubmit: SubmitHandler<Portfolio> = (data) => console.log(data);
 
   const values = watch();
 

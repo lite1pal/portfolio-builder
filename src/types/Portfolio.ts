@@ -1,4 +1,4 @@
-export type Profile = {
+export type Portfolio = {
   name: string;
   description: string;
   githubUrl: string;

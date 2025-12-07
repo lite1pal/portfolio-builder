@@ -1,10 +1,10 @@
 import { useState } from "react";
 import PortfolioDisplay from "./components/PortfolioDisplay";
-import ProfileForm from "./components/ProfileForm";
-import type { Profile } from "./types/Profile";
+import PortfolioForm from "./components/PortfolioForm";
+import type { Portfolio } from "./types/Portfolio";
 
 function App() {
-  const [portfolio, setPortfolio] = useState<Profile>({
+  const [portfolio, setPortfolio] = useState<Portfolio>({
     name: "",
     description: "",
     githubUrl: "",
@@ -20,7 +20,7 @@ function App() {
               in minutes
             </span>
           </h1>
-          <ProfileForm onChange={setPortfolio} />
+          <PortfolioForm onChange={setPortfolio} />
         </div>
         <PortfolioDisplay portfolio={portfolio} />
       </div>
