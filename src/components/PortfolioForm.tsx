@@ -1,50 +1,82 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Portfolio } from "../types/Portfolio";
-import { validateGithubUrl } from "../lib/urlValidators";
 import { useEffect, useState } from "react";
-import { fetchPublicRepos } from "../services/github";
+import {
+  extractGithubUsernameFromUrl,
+  fetchPublicRepos,
+  validateGithubUrl,
+} from "../services/github";
 import { Loader, UserSearch } from "lucide-react";
 import toast from "react-hot-toast";
 
 type PortfolioFormProps = {
+  initialPortfolio: Portfolio;
   onChange: React.Dispatch<React.SetStateAction<Portfolio>>;
 };
 
-export default function PortfolioForm({ onChange }: PortfolioFormProps) {
+export default function PortfolioForm({
+  initialPortfolio,
+  onChange,
+}: PortfolioFormProps) {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
-  } = useForm<Portfolio>();
+  } = useForm<Portfolio>({
+    defaultValues: {
+      name: initialPortfolio.name,
+      description: initialPortfolio.description,
+      githubUrl: initialPortfolio.githubUrl,
+      imgUrl: initialPortfolio.imgUrl,
+      repos: initialPortfolio.repos,
+    },
+  });
 
   const [isFetchingRepos, setIsFetchingRepos] = useState(false);
   const [localPortfolio, setLocalPortfolio] = useState<Portfolio>({
-    name: "",
-    description: "",
-    githubUrl: "",
-    imgUrl: null,
-    repos: [],
+    name: initialPortfolio.name,
+    description: initialPortfolio.description,
+    githubUrl: initialPortfolio.githubUrl,
+    imgUrl: initialPortfolio.imgUrl,
+    repos: initialPortfolio.repos,
   });
 
   const isReposFetched = localPortfolio.repos.length > 0;
 
   const onSubmit: SubmitHandler<Portfolio> = async (data) => console.log(data);
 
-  const fetchGithubRepos = async () => {
+  const fetchGithubRepos = async (githubUrl: string | null) => {
     if (isReposFetched) return;
+
+    if (!githubUrl) {
+      toast.error("Github URL isn't provided");
+      return;
+    }
+
+    const username = extractGithubUsernameFromUrl(githubUrl);
+
+    if (!username) {
+      toast.error("Github username isn't available in the provided URL");
+      return;
+    }
 
     try {
       setIsFetchingRepos(true);
-      const repos = await fetchPublicRepos("lite1pal");
+      const repos = await fetchPublicRepos(username);
 
       setLocalPortfolio((prev) => ({
         ...prev,
         repos,
       }));
       setIsFetchingRepos(false);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+        toast.error(err.message);
+      } else {
+        console.error("Unknown error", err);
+      }
     }
   };
 
@@ -125,7 +157,7 @@ export default function PortfolioForm({ onChange }: PortfolioFormProps) {
           />
           {!isReposFetched && (
             <button
-              onClick={fetchGithubRepos}
+              onClick={() => fetchGithubRepos(getValues("githubUrl"))}
               type="button"
               className="btn btn-ghost"
               disabled={isFetchingRepos}
