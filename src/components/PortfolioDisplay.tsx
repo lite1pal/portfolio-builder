@@ -1,3 +1,4 @@
+import { extractGithubUsernameFromUrl } from "../services/github";
 import type { Portfolio } from "../types/Portfolio";
 
 type PortfolioDisplayProps = {
@@ -10,9 +11,16 @@ export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {
     : "https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp";
 
   return (
-    <div className="mockup-phone max-w-sm border-primary">
-      <div className="mockup-phone-camera"></div>
-      <div className="mockup-phone-display p-5 flex flex-col gap-3">
+    <div className="mockup-browser border border-base-300 w-full">
+      <div className="mockup-browser-toolbar">
+        <div className="input">
+          https://
+          {extractGithubUsernameFromUrl(portfolio.githubUrl) ??
+            "portfolio-builder"}
+          .com
+        </div>
+      </div>
+      <div className="grid place-content-center p-5 gap-3">
         <div className="flex items-center gap-3">
           <img
             src={imgSrc}
@@ -23,7 +31,7 @@ export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {
         </div>
         <div className="font-semibold">{portfolio.description}</div>
 
-        <div className="overflow-y-auto mt-5 flex flex-col gap-3">
+        <div className="overflow-y-auto mt-5 h-96 flex flex-col gap-3">
           {portfolio.repos
             .sort(
               (a, b) =>

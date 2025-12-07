@@ -64,7 +64,8 @@ export default function PortfolioForm({
     try {
       setIsFetchingRepos(true);
       const repos = await fetchPublicRepos(username);
-      localStorage.setItem("portfolio", JSON.stringify(repos));
+      localStorage.setItem("repos", JSON.stringify(repos));
+      localStorage.setItem("githubUrl", githubUrl);
 
       setLocalPortfolio((prev) => ({
         ...prev,
@@ -93,7 +94,7 @@ export default function PortfolioForm({
           {...register("imgUrl", { required: true })}
           type="file"
           accept="image/png,image/jpeg,image/webp"
-          className="file-input file-input-secondary"
+          className="file-input"
           onChange={(e) => {
             const file = e.target.files?.[0] ?? null;
 
@@ -156,20 +157,14 @@ export default function PortfolioForm({
               }))
             }
           />
-          {!isReposFetched && (
-            <button
-              onClick={() => fetchGithubRepos(getValues("githubUrl"))}
-              type="button"
-              className="btn btn-ghost"
-              disabled={isFetchingRepos}
-            >
-              {isFetchingRepos ? (
-                <Loader size={16} />
-              ) : (
-                <UserSearch size={16} />
-              )}
-            </button>
-          )}
+          <button
+            onClick={() => fetchGithubRepos(getValues("githubUrl"))}
+            type="button"
+            className="btn btn-ghost"
+            disabled={isFetchingRepos}
+          >
+            {isFetchingRepos ? <Loader size={16} /> : <UserSearch size={16} />}
+          </button>
         </div>
         {errors.githubUrl && <span>{errors.githubUrl.message}</span>}
       </fieldset>
