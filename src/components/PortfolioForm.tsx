@@ -23,6 +23,7 @@ export default function PortfolioForm({
     register,
     handleSubmit,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<Portfolio>({
     defaultValues: {
@@ -83,6 +84,9 @@ export default function PortfolioForm({
           name: profile.name,
           repos,
         }));
+
+        setValue("name", profile.name);
+        setValue("description", profile.bio);
       } else {
         toast.error("Your Github profile doesn't have any public repos :(");
       }
