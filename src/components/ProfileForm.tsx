@@ -1,5 +1,6 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import type { ProfileFormType } from "../types/ProfileFormType";
+import { validateGithubUrl } from "../lib/urlValidators";
 
 export default function ProfileForm() {
   const {
@@ -38,12 +39,20 @@ export default function ProfileForm() {
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Github Profile URL</legend>
           <input
-            {...register("githubUrl", { required: true })}
+            {...register("githubUrl", {
+              required: true,
+
+              validate: (value) => {
+                return validateGithubUrl(value)
+                  ? true
+                  : "Specify the correct Github profile URL";
+              },
+            })}
             type="text"
             className="input"
             placeholder=""
           />
-          {errors.githubUrl && <span>This field is required</span>}
+          {errors.githubUrl && <span>{errors.githubUrl.message}</span>}
         </fieldset>
 
         <button className="mt-5 btn btn-primary">
