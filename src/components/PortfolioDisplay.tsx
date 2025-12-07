@@ -10,7 +10,7 @@ export default function PortfolioDisplay({ portfolio }: PortfolioDisplayProps) {
     : undefined;
 
   return (
-    <div className="mockup-phone max-w-sm border-[#ff8938]">
+    <div className="mockup-phone max-w-sm border-primary">
       <div className="mockup-phone-camera"></div>
       <div className="mockup-phone-display p-5 flex flex-col gap-3">
         <div className="flex items-center gap-3">
