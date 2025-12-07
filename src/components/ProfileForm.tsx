@@ -1,18 +1,27 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
-import type { ProfileFormType } from "../types/ProfileFormType";
+import type { Profile } from "../types/Profile";
 import { validateGithubUrl } from "../lib/urlValidators";
+import { useEffect } from "react";
 
-export default function ProfileForm() {
+type ProfileFormProps = {
+  onChange: React.Dispatch<React.SetStateAction<Profile>>;
+};
+
+export default function ProfileForm({ onChange }: ProfileFormProps) {
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<ProfileFormType>();
+  } = useForm<Profile>();
 
-  const onSubmit: SubmitHandler<ProfileFormType> = (data) => console.log(data);
+  const onSubmit: SubmitHandler<Profile> = (data) => console.log(data);
 
-  console.log(watch("name"));
+  const values = watch();
+
+  useEffect(() => {
+    onChange(values);
+  }, [values, onChange]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

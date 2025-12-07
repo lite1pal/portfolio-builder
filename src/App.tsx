@@ -1,7 +1,14 @@
+import { useState } from "react";
 import PortfolioDisplay from "./components/PortfolioDisplay";
 import ProfileForm from "./components/ProfileForm";
+import type { Profile } from "./types/Profile";
 
 function App() {
+  const [portfolio, setPortfolio] = useState<Profile>({
+    name: "",
+    description: "",
+    githubUrl: "",
+  });
   return (
     <div className="flex px-4 sm:px-8 items-center min-h-screen justify-center">
       <div className="grid sm:grid-cols-2 w-full items-center max-w-6xl gap-10">
@@ -13,9 +20,9 @@ function App() {
               in minutes
             </span>
           </h1>
-          <ProfileForm />
+          <ProfileForm onChange={setPortfolio} />
         </div>
-        <PortfolioDisplay />
+        <PortfolioDisplay portfolio={portfolio} />
       </div>
     </div>
   );

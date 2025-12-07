@@ -1,4 +1,4 @@
-export type ProfileFormType = {
+export type Profile = {
   name: string;
   description: string;
   githubUrl: string;
